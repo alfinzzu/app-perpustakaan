@@ -1,22 +1,20 @@
-{{-- File: resources/views/books/create.blade.php --}}
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <title>Tambah Buku</title>
-    <style>
-        body { font-family: sans-serif; margin: 40px; max-width: 500px; }
-        label { display: block; margin-top: 12px; font-weight: bold; }
-        input, select { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; }
-        .error { color: #b91c1c; font-size: 14px; margin-top: 4px; }
-        .btn { margin-top: 20px; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
-    </style>
-</head>
-<body>
+@extends('layouts.app')
+
+@section('title', 'Tambah Buku')
+
+@section('content')
     <h1>Tambah Buku</h1>
     <p><a href="{{ route('books.index') }}">&larr; Kembali ke daftar buku</a></p>
 
+    <style>
+        label { display: block; margin-top: 12px; font-weight: bold; }
+        input, select { width: 100%; padding: 6px; margin-top: 4px; box-sizing: border-box; max-width: 500px; }
+        .error { color: #b91c1c; font-size: 14px; margin-top: 4px; }
+        .btn { margin-top: 20px; padding: 8px 16px; background: #2563eb; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    </style>
+
     <form action="{{ route('books.store') }}" method="POST">
+        {{-- WAJIB ADA agar Laravel mengizinkan form dikirim --}}
         @csrf
 
         <label for="judul">Judul</label>
@@ -59,8 +57,8 @@
         <select name="category_id" id="category_id">
             <option value="">-- Pilih Kategori --</option>
             @foreach ($categories as $category)
-                <option value="{{ $category['id'] }}" @selected(old('category_id') == $category['id'])>
-                    {{ $category['nama_kategori'] }}
+                <option value="{{ $category->id }}" @selected(old('category_id') == $category->id)>
+                    {{ $category->nama_kategori }}
                 </option>
             @endforeach
         </select>
@@ -70,5 +68,4 @@
 
         <button type="submit" class="btn">Simpan</button>
     </form>
-</body>
-</html>
+@endsection

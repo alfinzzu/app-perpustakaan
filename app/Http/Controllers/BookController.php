@@ -2,33 +2,23 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Book;
+use App\Models\Category;
 use App\Http\Requests\StoreBookRequest;
 use Illuminate\Http\Request;
 
 class BookController extends Controller
 {
-    private array $categories = [
-        ['id' => 1, 'nama_kategori' => 'Fiksi'],
-        ['id' => 2, 'nama_kategori' => 'Teknologi'],
-        ['id' => 3, 'nama_kategori' => 'Sejarah'],
-    ];
-
-    private array $books = [
-        ['id' => 1, 'judul' => 'Laskar Pelangi', 'penulis' => 'Andrea Hirata', 'penerbit' => 'Bentang Pustaka', 'tahun_terbit' => 2005, 'isbn' => '9789793062792', 'stok' => 5, 'category_id' => 1, 'kategori' => 'Fiksi'],
-        ['id' => 2, 'judul' => 'Bumi Manusia', 'penulis' => 'Pramoedya Ananta Toer', 'penerbit' => 'Hasta Mitra', 'tahun_terbit' => 1980, 'isbn' => '9789794330746', 'stok' => 3, 'category_id' => 1, 'kategori' => 'Fiksi'],
-        ['id' => 3, 'judul' => 'Clean Code', 'penulis' => 'Robert C. Martin', 'penerbit' => 'Prentice Hall', 'tahun_terbit' => 2008, 'isbn' => '9780132350884', 'stok' => 7, 'category_id' => 2, 'kategori' => 'Teknologi'],
-    ];
-
     public function index()
     {
-        $books = $this->books;
+        $books = Book::paginate(10);
 
         return view('books.index', compact('books'));
     }
 
     public function create()
     {
-        $categories = $this->categories;
+        $categories = Category::all();
 
         return view('books.create', compact('categories'));
     }
@@ -37,32 +27,31 @@ class BookController extends Controller
     {
         $validated = $request->validated();
 
+        Book::create($validated);
+
         return redirect()->route('books.index')
-            ->with('success', "Buku \"{$validated['judul']}\" berhasil ditambahkan (data dummy, belum tersimpan ke database).");
+            ->with('success', "Buku \"{$validated['judul']}\" berhasil ditambahkan.");
     }
 
     public function show(string $id)
     {
-        $book = collect($this->books)->firstWhere('id', (int) $id);
-
-        abort_if(! $book, 404);
+        $book = Book::findOrFail($id);
 
         return view('books.show', compact('book'));
     }
 
     public function edit(string $id)
     {
-        $book = collect($this->books)->firstWhere('id', (int) $id);
-
-        abort_if(! $book, 404);
-
-        $categories = $this->categories;
+        $book = Book::findOrFail($id);
+        $categories = Category::all();
 
         return view('books.edit', compact('book', 'categories'));
     }
 
     public function update(Request $request, string $id)
     {
+        $book = Book::findOrFail($id);
+
         $validated = $request->validate([
             'judul' => 'required|string|max:200',
             'penulis' => 'required|string|max:100',
@@ -70,16 +59,21 @@ class BookController extends Controller
             'tahun_terbit' => 'required|integer|min:1900|max:'.date('Y'),
             'isbn' => 'nullable|string|max:20',
             'stok' => 'required|integer|min:0',
-            'category_id' => 'required|integer',
+            'category_id' => 'required|integer|exists:categories,id',
         ]);
 
+        $book->update($validated);
+
         return redirect()->route('books.index')
-            ->with('success', "Buku \"{$validated['judul']}\" berhasil diperbarui (data dummy, belum tersimpan ke database).");
+            ->with('success', "Buku \"{$validated['judul']}\" berhasil diperbarui.");
     }
 
     public function destroy(string $id)
     {
+        $book = Book::findOrFail($id);
+        $book->delete();
+
         return redirect()->route('books.index')
-            ->with('success', "Buku dengan id {$id} berhasil dihapus (data dummy, belum tersimpan ke database).");
+            ->with('success', 'Buku berhasil dihapus.');
     }
 }
